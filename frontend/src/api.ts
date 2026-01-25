@@ -1,11 +1,12 @@
 export type Place = {
   id: number;
   name: string;
-  type: "restaurant" | "mall" | "campus" | "masjid" | "other";
   address: string | null;
   isVerified: boolean;
   lat: number;
   lng: number;
+  capacity: number | null;
+  requiresRegistration: boolean;
   avgRating: number;
   reviewCount: number;
 };
@@ -26,8 +27,11 @@ export async function fetchNearbyPlaces(lat: number, lng: number, radiusMeters =
 export type Review = {
   id: number;
   userId: number;
+  userName: string;
+  userVerified: boolean;
   rating: number;
   comment: string;
+  photoUrl: string | null;
   createdAt: string;
 };
 
@@ -37,7 +41,10 @@ export async function fetchReviews(placeId: number) {
   return (await res.json()) as Review[];
 }
 
-export async function addReview(placeId: number, data: { userId: number; rating: number; comment?: string }) {
+export async function addReview(
+  placeId: number, 
+  data: { userId: number; rating: number; comment?: string }
+) {
   const res = await fetch(`${API_BASE}/places/${placeId}/reviews`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -60,3 +67,51 @@ export async function fetchPromos(placeId: number) {
   return (await res.json()) as Promo[];
 }
 
+export async function createPlace(data: {
+  name: string;
+  address?: string;
+  lat: number;
+  lng: number;
+  capacity?: number;
+  requiresRegistration?: boolean;
+}) {
+  console.log("API call - createPlace:", data);
+  const res = await fetch(`${API_BASE}/places`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("API Error:", errorText);
+    throw new Error(`Failed to create place: ${errorText}`);
+  }
+  
+  return res.json() as Promise<{ id: number }>;
+}
+
+export type User = {
+  id: number;
+  name: string;
+  email: string;
+  isVerified: boolean;
+  reviewCount?: number;
+  avgRating?: number;
+};
+
+export async function createOrGetUser(data: { name: string; email: string }) {
+  const res = await fetch(`${API_BASE}/users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Failed to create/get user");
+  return res.json() as Promise<User>;
+}
+
+export async function getUser(userId: number) {
+  const res = await fetch(`${API_BASE}/users/${userId}`);
+  if (!res.ok) throw new Error("Failed to get user");
+  return res.json() as Promise<User>;
+}

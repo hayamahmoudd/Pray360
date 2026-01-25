@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/pg": "^8.16.0"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^9.4.0",
+    "@fastify/static": "^9.0.0"
+  }
+}
