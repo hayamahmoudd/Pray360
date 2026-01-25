@@ -69,7 +69,7 @@ export default function SearchPanel({
         `q=${encodeURIComponent(searchQuery)}&format=json&limit=12&addressdetails=1&countrycodes=ca,us`,
         {
           headers: {
-            'User-Agent': 'pray360/1.0'
+            'User-Agent': 'Pray360/1.0'
           }
         }
       );
