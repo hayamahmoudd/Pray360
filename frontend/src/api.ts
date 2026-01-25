@@ -3,6 +3,7 @@ export type Place = {
   name: string;
   address: string | null;
   isVerified: boolean;
+  ownerId: number | null;
   lat: number;
   lng: number;
   capacity: number | null;
@@ -54,6 +55,19 @@ export async function addReview(
   return res.json() as Promise<{ id: number }>;
 }
 
+export async function uploadReviewPhoto(reviewId: number, file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_BASE}/reviews/${reviewId}/photo`, {
+    method: "POST",
+    body: formData,
+  });
+  
+  if (!res.ok) throw new Error("Failed to upload photo");
+  return res.json() as Promise<{ photoUrl: string }>;
+}
+
 export type Promo = {
   id: number;
   title: string;
@@ -72,6 +86,7 @@ export async function createPlace(data: {
   address?: string;
   lat: number;
   lng: number;
+  ownerId?: number;
   capacity?: number;
   requiresRegistration?: boolean;
 }) {
@@ -96,11 +111,18 @@ export type User = {
   name: string;
   email: string;
   isVerified: boolean;
+  isBusinessOwner?: boolean;
+  gender?: string;
   reviewCount?: number;
   avgRating?: number;
 };
 
-export async function createOrGetUser(data: { name: string; email: string }) {
+export async function createOrGetUser(data: { 
+  name: string; 
+  email: string;
+  isBusinessOwner?: boolean;
+  gender?: 'brother' | 'sister';
+}) {
   const res = await fetch(`${API_BASE}/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

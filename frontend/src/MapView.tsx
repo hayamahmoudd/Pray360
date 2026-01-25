@@ -1,11 +1,11 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import maplibregl from "maplibre-gl";
 import { useEffect, useRef, useState } from "react";
-import { fetchNearbyPlaces, createPlace, type Place } from "./api";
+import { fetchNearbyPlaces, createPlace, type Place, type User } from "./api";
 import PlaceDrawer from "./PlaceDrawer";
 import SearchPanel from "./SearchPanel";
 
-export default function MapView() {
+export default function MapView({ currentUser, onRequestLogin }: { currentUser: User | null; onRequestLogin: () => void }) {
   const el = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<Map<number, maplibregl.Marker>>(new Map());
@@ -97,6 +97,18 @@ export default function MapView() {
       return;
     }
     
+    // Only business owners can set capacity during creation
+    if (!currentUser?.isBusinessOwner && placeCapacity) {
+      alert("Only business owners can set capacity when creating prayer spaces");
+      return;
+    }
+
+    // Validate capacity is at least 1 if provided
+    if (placeCapacity && parseInt(placeCapacity) < 1) {
+      alert("Capacity must be at least 1 person");
+      return;
+    }
+    
     if (!pinLocation) return;
 
     try {
@@ -104,6 +116,7 @@ export default function MapView() {
         name: placeName,
         lat: pinLocation.lat,
         lng: pinLocation.lng,
+        ownerId: currentUser?.isBusinessOwner ? currentUser.id : undefined,
         capacity: placeCapacity ? parseInt(placeCapacity) : undefined,
       });
 
@@ -112,6 +125,7 @@ export default function MapView() {
         name: placeName,
         address: null,
         isVerified: false,
+        ownerId: currentUser?.isBusinessOwner ? currentUser.id : null,
         lat: pinLocation.lat,
         lng: pinLocation.lng,
         capacity: placeCapacity ? parseInt(placeCapacity) : null,
@@ -139,21 +153,32 @@ export default function MapView() {
         {/* Pin Mode Button */}
         <div style={{
           position: 'absolute',
-          top: '16px',
-          right: '16px',
+          top: '12px',
+          right: '12px',
           zIndex: 10,
         }}>
           <button 
             className={`btn ${isPinMode ? '' : 'secondary'}`}
-            onClick={() => setIsPinMode(!isPinMode)}
+            onClick={() => {
+              // Check if user is logged in before enabling pin mode
+              if (!currentUser) {
+                onRequestLogin();
+                return;
+              }
+              setIsPinMode(!isPinMode);
+            }}
             style={{
-              background: isPinMode ? 'rgba(90,255,170,.18)' : undefined,
-              border: isPinMode ? '1px solid rgba(90,255,170,.28)' : undefined,
-              boxShadow: '0 4px 12px rgba(0,0,0,.2)',
+              background: isPinMode ? 'rgba(255,255,255,.25)' : 'rgb(82,130,102)',
+              border: isPinMode ? '1px solid rgba(255,255,255,.4)' : '1px solid rgba(255,255,255,.2)',
+              color: '#fff',
               whiteSpace: 'nowrap',
+              fontSize: '13px',
+              fontWeight: '600',
+              padding: '10px 14px',
+              backdropFilter: 'blur(12px)',
             }}
           >
-            {isPinMode ? '📍 Click map' : '➕ Pin'}
+            {isPinMode ? 'Tap map to pin' : 'Pin Location'}
           </button>
         </div>
 
@@ -164,15 +189,19 @@ export default function MapView() {
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            background: 'var(--panel)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,.10)',
-            borderRadius: '12px',
+            background: 'rgb(82,130,102)',
+            border: '1px solid rgba(255,255,255,.2)',
+            borderRadius: '14px',
             padding: '20px',
-            width: 'min(400px, 90vw)',
+            width: 'min(400px, calc(100vw - 24px))',
+            maxHeight: 'calc(100dvh - 120px)',
+            overflowY: 'auto',
             zIndex: 100,
+            color: '#fff'
           }}>
-            <h3 style={{ marginTop: 0 }}>Name this prayer space</h3>
+            <h3 style={{ marginTop: 0, marginBottom: '14px', fontSize: '16px', fontWeight: '600' }}>
+              Name this prayer space
+            </h3>
             <input
               type="text"
               className="searchInput"
@@ -180,17 +209,25 @@ export default function MapView() {
               onChange={(e) => setPlaceName(e.target.value)}
               placeholder="e.g., McDonald's Downtown"
               autoFocus
+              style={{ marginBottom: '10px', fontSize: '16px' }}
             />
-            <input
-              type="number"
-              className="searchInput"
-              value={placeCapacity}
-              onChange={(e) => setPlaceCapacity(e.target.value)}
-              placeholder="Capacity (optional)"
-              min="1"
-              style={{ marginTop: '8px' }}
-            />
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            {currentUser?.isBusinessOwner && (
+              <>
+                <input
+                  type="number"
+                  className="searchInput"
+                  value={placeCapacity}
+                  onChange={(e) => setPlaceCapacity(e.target.value)}
+                  placeholder="Capacity (how many can pray here?)"
+                  min="1"
+                  style={{ marginBottom: '10px', fontSize: '16px' }}
+                />
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.8)', marginBottom: '12px', padding: '8px', background: 'rgba(255,255,255,.1)', borderRadius: '8px', border: '1px solid rgba(255,255,255,.2)' }}>
+                  As a business owner, you can set the capacity
+                </div>
+              </>
+            )}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
               <button 
                 className="btn secondary" 
                 onClick={() => {
@@ -198,16 +235,16 @@ export default function MapView() {
                   setPlaceName("");
                   setPlaceCapacity("");
                 }}
-                style={{ flex: 1 }}
+                style={{ flex: 1, padding: '10px' }}
               >
                 Cancel
               </button>
               <button 
                 className="btn" 
                 onClick={handleCreatePin}
-                style={{ flex: 1 }}
+                style={{ flex: 1, padding: '10px', fontWeight: '600' }}
               >
-                Create
+                Create Place
               </button>
             </div>
           </div>
