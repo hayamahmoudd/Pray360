@@ -20,7 +20,7 @@ export default function MapView({ currentUser, onRequestLogin, onUserCreated }: 
   const addMarker = (p: Place, m: maplibregl.Map) => {
     const mEl = document.createElement("div");
     mEl.className = `mw-marker ${p.isVerified ? "verified" : ""}`;
-    mEl.innerHTML = `<div class="mw-marker-inner">📍</div>`;
+    mEl.innerHTML = `<div class="mw-marker-inner"><img src="/logo.png" alt="" /></div><div class="mw-marker-label">${p.name}</div>`;
 
     mEl.addEventListener("click", () => setSelected(p));
 
@@ -36,7 +36,7 @@ export default function MapView({ currentUser, onRequestLogin, onUserCreated }: 
 
     const styleUrl = import.meta.env.VITE_MAPTILER_STYLE_URL as string;
 
-    const center = { lat: 43.5448, lng: -80.2482 }; // Guelph default
+    const center = { lat: 43.4516, lng: -80.4925 }; // Kitchener/Waterloo
 
     const m = new maplibregl.Map({
       container: el.current,

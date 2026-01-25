@@ -49,8 +49,8 @@ export default function SearchPanel({
           });
         },
         () => {
-          // Default to Guelph if location denied
-          setUserLocation({ lat: 43.5448, lng: -80.2482 });
+          // Default to Kitchener/Waterloo if location denied
+          setUserLocation({ lat: 43.4516, lng: -80.4925 });
         }
       );
     }
@@ -94,8 +94,12 @@ export default function SearchPanel({
 
   const handleAddPlace = async (result: SearchResult) => {
     try {
+      // Use first two parts of address (e.g., "31 Boulder Crescent, Kitchener") for better naming
+      const nameParts = result.display_name.split(",").slice(0, 2).map(s => s.trim());
+      const placeName = nameParts.join(", ");
+      
       const placeData = {
-        name: result.display_name.split(",")[0],
+        name: placeName,
         address: result.display_name,
         lat: parseFloat(result.lat),
         lng: parseFloat(result.lon),
