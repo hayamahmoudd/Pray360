@@ -28,6 +28,11 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem("pray360_user");
     setCurrentUser(null);
+    // Clear form inputs
+    setUserName("");
+    setUserEmail("");
+    setIsBusinessOwner(false);
+    setGender('brother');
     setShowLoginModal(true);
   };
 
@@ -69,7 +74,7 @@ export default function App() {
     <div className="shell">
       <header className="topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo.png" alt="Pray360" style={{ height: '36px', width: 'auto', objectFit: 'contain' }} />
+          <img src="/logo2.png" alt="Pray360" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
           <div>
             <div className="brand">Pray360</div>
             <div className="tag">Pin and rate prayer spaces</div>
@@ -124,7 +129,7 @@ export default function App() {
               ✕
             </button>
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-              <img src="/logo.png" alt="Pray360" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
+              <img src="/logo2.png" alt="Pray360" style={{ width: '48px', height: '48px', objectFit: 'contain', marginBottom: '8px' }} />
               <div style={{ fontSize: '20px', fontWeight: '700', marginBottom: '6px' }}>Welcome to Pray360</div>
               <div style={{ fontSize: '13px', color: 'rgba(255,255,255,.7)' }}>Create your profile to pin and rate prayer spaces</div>
             </div>
