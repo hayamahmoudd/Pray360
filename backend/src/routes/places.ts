@@ -9,6 +9,7 @@ export async function placesRoutes(app: FastifyInstance) {
         name: z.string().min(2).max(80),
         address: z.string().max(140).optional().nullable(),
         isVerified: z.boolean().optional().default(false),
+        ownerId: z.number().int().positive().optional().nullable(),
         lat: z.number(),
         lng: z.number(),
         capacity: z.number().int().positive().optional().nullable(),
@@ -21,11 +22,21 @@ export async function placesRoutes(app: FastifyInstance) {
 
       const result = await query(
         `
-        INSERT INTO places (name, address, is_verified, lat, lng, geom)
-        VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($6, $4), 4326))
+        INSERT INTO places (name, address, is_verified, owner_id, lat, lng, geom, capacity, requires_registration)
+        VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($7, $5), 4326), $8, $9)
         RETURNING id
         `,
-        [body.name, body.address ?? null, body.isVerified, body.lat, body.lng, body.lng]
+        [
+          body.name, 
+          body.address ?? null, 
+          body.isVerified,
+          body.ownerId ?? null,
+          body.lat, 
+          body.lng, 
+          body.lng,
+          body.capacity ?? null,
+          body.requiresRegistration
+        ]
       );
 
       const placeId = result.rows[0].id;
@@ -55,10 +66,11 @@ export async function placesRoutes(app: FastifyInstance) {
         p.name,
         p.address,
         p.is_verified AS "isVerified",
+        p.owner_id AS "ownerId",
         p.lat,
         p.lng,
-        NULL::int AS "capacity",
-        FALSE AS "requiresRegistration",
+        p.capacity,
+        p.requires_registration AS "requiresRegistration",
         COALESCE(AVG(r.rating), 0)::float AS "avgRating",
         COUNT(r.id)::int AS "reviewCount"
       FROM places p

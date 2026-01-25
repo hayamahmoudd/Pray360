@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createPlace, type Place } from "./api";
 
 type SearchResult = {
@@ -11,8 +11,21 @@ type SearchResult = {
     road?: string;
     city?: string;
     state?: string;
+    country?: string;
   };
 };
+
+// Calculate distance between two coordinates (Haversine formula)
+function getDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
 
 export default function SearchPanel({ 
   onPlaceAdded 
@@ -22,7 +35,26 @@ export default function SearchPanel({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Get user's location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        () => {
+          // Default to Guelph if location denied
+          setUserLocation({ lat: 43.5448, lng: -80.2482 });
+        }
+      );
+    }
+  }, []);
 
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim() || searchQuery.length < 2) {
@@ -34,14 +66,24 @@ export default function SearchPanel({
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?` +
-        `q=${encodeURIComponent(searchQuery)}&format=json&limit=8&addressdetails=1`,
+        `q=${encodeURIComponent(searchQuery)}&format=json&limit=12&addressdetails=1&countrycodes=ca,us`,
         {
           headers: {
-            'User-Agent': 'Praybnb/1.0'
+            'User-Agent': 'pray360/1.0'
           }
         }
       );
-      const data = await response.json();
+      let data = await response.json();
+      
+      // Sort by distance from user's location if available
+      if (userLocation && data.length > 0) {
+        data = data.sort((a: SearchResult, b: SearchResult) => {
+          const distA = getDistanceKm(userLocation.lat, userLocation.lng, parseFloat(a.lat), parseFloat(a.lon));
+          const distB = getDistanceKm(userLocation.lat, userLocation.lng, parseFloat(b.lat), parseFloat(b.lon));
+          return distA - distB;
+        });
+      }
+      
       setResults(data);
     } catch (error) {
       console.error("Search error:", error);
@@ -68,6 +110,7 @@ export default function SearchPanel({
         id: response.id,
         ...placeData,
         isVerified: false,
+        ownerId: null,
         capacity: null,
         requiresRegistration: false,
         avgRating: 0,
@@ -108,16 +151,28 @@ export default function SearchPanel({
 
       {results.length > 0 && (
         <div className="searchResults">
-          {results.map((result) => (
-            <div
-              key={result.place_id}
-              className="searchResult"
-              onClick={() => handleAddPlace(result)}
-            >
-              <div className="resultTitle">{result.display_name.split(",")[0]}</div>
-              <div className="resultAddress">{result.display_name}</div>
-            </div>
-          ))}
+          {results.map((result) => {
+            const distance = userLocation 
+              ? getDistanceKm(userLocation.lat, userLocation.lng, parseFloat(result.lat), parseFloat(result.lon))
+              : null;
+            return (
+              <div
+                key={result.place_id}
+                className="searchResult"
+                onClick={() => handleAddPlace(result)}
+              >
+                <div className="resultHeader">
+                  <div className="resultTitle">{result.display_name.split(",")[0]}</div>
+                  {distance !== null && (
+                    <div className="resultDistance">
+                      {distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`}
+                    </div>
+                  )}
+                </div>
+                <div className="resultAddress">{result.display_name}</div>
+              </div>
+            );
+          })}
         </div>
       )}
 

@@ -12,6 +12,8 @@ export async function devRoutes(app: FastifyInstance) {
           name TEXT NOT NULL,
           email TEXT UNIQUE NOT NULL,
           is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+          is_business_owner BOOLEAN NOT NULL DEFAULT FALSE,
+          gender TEXT,
           created_at TIMESTAMP NOT NULL DEFAULT NOW()
         );
       `);
@@ -22,6 +24,7 @@ export async function devRoutes(app: FastifyInstance) {
           name TEXT NOT NULL,
           address TEXT,
           is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+          owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
           lat DOUBLE PRECISION NOT NULL,
           lng DOUBLE PRECISION NOT NULL,
           geom geometry(Point, 4326),

@@ -44,3 +44,26 @@ docker-compose.override.yml
 *.sqlite3
 
 *.log
+
+# ===== Uploads / User Content =====
+backend/uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ===== Images =====
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.ico
+*.bmp
+*.tiff
+
+# Keep frontend assets
+!frontend/src/assets/**
+!frontend/public/**
+*.jpeg
+*.gif
+*.webp  
