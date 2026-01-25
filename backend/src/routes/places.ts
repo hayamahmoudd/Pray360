@@ -3,28 +3,39 @@ import { z } from "zod";
 import { query } from "../db";
 
 export async function placesRoutes(app: FastifyInstance) {
-  app.post("/places", async (req) => {
-    const Schema = z.object({
-      name: z.string().min(2).max(80),
-      type: z.enum(["restaurant", "mall", "campus", "masjid", "other"]).default("other"),
-      address: z.string().max(140).optional().nullable(),
-      isVerified: z.boolean().optional().default(false),
-      lat: z.number(),
-      lng: z.number(),
-    });
+  app.post("/places", async (req, reply) => {
+    try {
+      const Schema = z.object({
+        name: z.string().min(2).max(80),
+        address: z.string().max(140).optional().nullable(),
+        isVerified: z.boolean().optional().default(false),
+        lat: z.number(),
+        lng: z.number(),
+        capacity: z.number().int().positive().optional().nullable(),
+        requiresRegistration: z.boolean().optional().default(false),
+      });
 
-    const body = Schema.parse(req.body);
+      const body = Schema.parse(req.body);
+      
+      console.log("Creating place:", body);
 
-    const result = await query(
-      `
-      INSERT INTO places (name, type, address, is_verified, lat, lng, geom)
-      VALUES ($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($6, $5), 4326))
-      RETURNING id
-      `,
-      [body.name, body.type, body.address ?? null, body.isVerified, body.lat, body.lng]
-    );
+      const result = await query(
+        `
+        INSERT INTO places (name, address, is_verified, lat, lng, geom)
+        VALUES ($1, $2, $3, $4, $5, ST_SetSRID(ST_MakePoint($6, $4), 4326))
+        RETURNING id
+        `,
+        [body.name, body.address ?? null, body.isVerified, body.lat, body.lng, body.lng]
+      );
 
-    return { id: result.rows[0].id };
+      const placeId = result.rows[0].id;
+      console.log("Place created with ID:", placeId);
+
+      return { id: placeId };
+    } catch (error: any) {
+      console.error("Error creating place:", error);
+      return reply.code(500).send({ error: error.message || String(error) });
+    }
   });
 
   // Get nearby places including avg rating
@@ -42,11 +53,12 @@ export async function placesRoutes(app: FastifyInstance) {
       SELECT
         p.id,
         p.name,
-        p.type,
         p.address,
         p.is_verified AS "isVerified",
         p.lat,
         p.lng,
+        NULL::int AS "capacity",
+        FALSE AS "requiresRegistration",
         COALESCE(AVG(r.rating), 0)::float AS "avgRating",
         COUNT(r.id)::int AS "reviewCount"
       FROM places p

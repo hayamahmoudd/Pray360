@@ -4,10 +4,11 @@ import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { join } from "path";
 
-import { devRoutes } from "./routes/dev";
-import { placesRoutes } from "./routes/places";
-import { reviewsRoutes } from "./routes/reviews";
-import { promosRoutes } from "./routes/promos";
+import { devRoutes } from "./routes/dev.js";
+import { placesRoutes } from "./routes/places.js";
+import { reviewsRoutes } from "./routes/reviews.js";
+import { promosRoutes } from "./routes/promos.js";
+import { usersRoutes } from "./users.js";
 
 const app = Fastify({ logger: true });
 
@@ -25,6 +26,7 @@ await app.register(fastifyStatic, {
 app.get("/health", async () => ({ ok: true }));
 
 await app.register(devRoutes);
+await app.register(usersRoutes);
 await app.register(placesRoutes);
 await app.register(reviewsRoutes);
 await app.register(promosRoutes);

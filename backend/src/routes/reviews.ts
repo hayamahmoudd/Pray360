@@ -1,6 +1,6 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { query } from "../db";
+import { query } from "../db.js";
 import multipart from "@fastify/multipart";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
@@ -20,12 +20,14 @@ export async function reviewsRoutes(app: FastifyInstance) {
 
     const result = await query(
       `
-      SELECT id, place_id AS "placeId", user_id AS "userId",
-             rating, comment, prayed_here AS "prayedHere", 
-             photo_url AS "photoUrl", created_at AS "createdAt"
-      FROM reviews
-      WHERE place_id = $1
-      ORDER BY created_at DESC
+      SELECT r.id, r.place_id AS "placeId", r.user_id AS "userId",
+             r.rating, r.comment, r.prayed_here AS "prayedHere", 
+             NULL AS "photoUrl", r.created_at AS "createdAt",
+             u.name AS "userName", u.is_verified AS "userVerified"
+      FROM reviews r
+      LEFT JOIN users u ON u.id = r.user_id
+      WHERE r.place_id = $1
+      ORDER BY r.created_at DESC
       LIMIT 50
       `,
       [placeId]
@@ -45,57 +47,19 @@ export async function reviewsRoutes(app: FastifyInstance) {
     const placeId = Number((req.params as any).id);
     if (!Number.isFinite(placeId)) return reply.code(400).send({ error: "Invalid place id" });
 
-    const isMultipart = req.isMultipart();
-    let body: any;
-    let photoUrl: string | null = null;
-
-    if (isMultipart) {
-      const parts = req.parts();
-      const fields: any = {};
-
-      for await (const part of parts) {
-        if (part.type === 'file') {
-          // Handle file upload
-          const buffer = await part.toBuffer();
-          const ext = part.filename.split('.').pop() || 'jpg';
-          const filename = `${randomBytes(16).toString('hex')}.${ext}`;
-          
-          // Ensure uploads directory exists
-          const uploadsDir = join(process.cwd(), 'uploads');
-          await mkdir(uploadsDir, { recursive: true });
-          
-          const filepath = join(uploadsDir, filename);
-          await writeFile(filepath, buffer);
-          
-          photoUrl = `/uploads/${filename}`;
-        } else {
-          // Handle form field
-          fields[part.fieldname] = (part as any).value;
-        }
-      }
-
-      body = {
-        userId: Number(fields.userId),
-        rating: Number(fields.rating),
-        comment: fields.comment || "",
-        prayedHere: fields.prayedHere === 'true',
-      };
-    } else {
-      body = Schema.parse(req.body);
-    }
+    const body = Schema.parse(req.body);
 
     const result = await query(
       `
-      INSERT INTO reviews (place_id, user_id, rating, comment, prayed_here, photo_url)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO reviews (place_id, user_id, rating, comment, prayed_here)
+      VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (place_id, user_id)
       DO UPDATE SET rating = EXCLUDED.rating,
                     comment = EXCLUDED.comment,
-                    prayed_here = EXCLUDED.prayed_here,
-                    photo_url = EXCLUDED.photo_url
+                    prayed_here = EXCLUDED.prayed_here
       RETURNING id;
       `,
-      [placeId, body.userId, body.rating, body.comment, body.prayedHere, photoUrl]
+      [placeId, body.userId, body.rating, body.comment, body.prayedHere]
     );
 
     return { id: result.rows[0].id };
