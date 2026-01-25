@@ -8,10 +8,14 @@ export default function PlaceDrawer({
   open,
   onClose,
   place,
+  currentUser,
+  onUserCreated,
 }: {
   open: boolean;
   onClose: () => void;
   place: Place | null;
+  currentUser: User | null;
+  onUserCreated: (user: User) => void;
 }) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [promos, setPromos] = useState<Promo[]>([]);
@@ -26,20 +30,11 @@ export default function PlaceDrawer({
   const [existingReview, setExistingReview] = useState<Review | null>(null);
   const [isOwner, setIsOwner] = useState(false);
   
-  // User profile
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // User profile form (for sign-in within drawer)
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [isBusinessOwner, setIsBusinessOwner] = useState(false);
   const [gender, setGender] = useState<'brother' | 'sister'>('brother');
-
-  useEffect(() => {
-    // Check if user exists in localStorage
-    const storedUser = localStorage.getItem("praybnb_user");
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-  }, []);
 
   useEffect(() => {
     if (!open || !place) return;
@@ -133,8 +128,7 @@ export default function PlaceDrawer({
         isBusinessOwner,
         gender
       });
-      setCurrentUser(user);
-      localStorage.setItem("praybnb_user", JSON.stringify(user));
+      onUserCreated(user);
     } catch (error) {
       console.error("Error creating user:", error);
       alert("Failed to create user profile");

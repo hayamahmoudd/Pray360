@@ -5,7 +5,7 @@ import { fetchNearbyPlaces, createPlace, type Place, type User } from "./api";
 import PlaceDrawer from "./PlaceDrawer";
 import SearchPanel from "./SearchPanel";
 
-export default function MapView({ currentUser, onRequestLogin }: { currentUser: User | null; onRequestLogin: () => void }) {
+export default function MapView({ currentUser, onRequestLogin, onUserCreated }: { currentUser: User | null; onRequestLogin: () => void; onUserCreated: (user: User) => void }) {
   const el = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const markers = useRef<Map<number, maplibregl.Marker>>(new Map());
@@ -168,7 +168,7 @@ export default function MapView({ currentUser, onRequestLogin }: { currentUser: 
               setIsPinMode(!isPinMode);
             }}
             style={{
-              background: isPinMode ? 'rgba(255,255,255,.25)' : 'rgb(82,130,102)',
+              background: isPinMode ? 'rgba(255,255,255,.25)' : '#44605e',
               border: isPinMode ? '1px solid rgba(255,255,255,.4)' : '1px solid rgba(255,255,255,.2)',
               color: '#fff',
               whiteSpace: 'nowrap',
@@ -189,7 +189,7 @@ export default function MapView({ currentUser, onRequestLogin }: { currentUser: 
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            background: 'rgb(82,130,102)',
+            background: '#44605e',
             border: '1px solid rgba(255,255,255,.2)',
             borderRadius: '14px',
             padding: '20px',
@@ -250,7 +250,7 @@ export default function MapView({ currentUser, onRequestLogin }: { currentUser: 
           </div>
         )}
       </div>
-      <PlaceDrawer open={!!selected} onClose={() => setSelected(null)} place={selected} />
+      <PlaceDrawer open={!!selected} onClose={() => setSelected(null)} place={selected} currentUser={currentUser} onUserCreated={onUserCreated} />
     </>
   );
 }
