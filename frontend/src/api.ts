@@ -28,6 +28,7 @@ export type Review = {
   userId: number;
   rating: number;
   comment: string;
+  photoUrl: string | null;
   createdAt: string;
 };
 
@@ -37,11 +38,19 @@ export async function fetchReviews(placeId: number) {
   return (await res.json()) as Review[];
 }
 
-export async function addReview(placeId: number, data: { userId: number; rating: number; comment?: string }) {
+export async function addReview(
+  placeId: number, 
+  data: { userId: number; rating: number; comment?: string; photo?: File }
+) {
+  const formData = new FormData();
+  formData.append("userId", String(data.userId));
+  formData.append("rating", String(data.rating));
+  if (data.comment) formData.append("comment", data.comment);
+  if (data.photo) formData.append("photo", data.photo);
+
   const res = await fetch(`${API_BASE}/places/${placeId}/reviews`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: formData,
   });
   if (!res.ok) throw new Error("Failed to add review");
   return res.json() as Promise<{ id: number }>;
@@ -59,4 +68,3 @@ export async function fetchPromos(placeId: number) {
   if (!res.ok) throw new Error("Failed to load promos");
   return (await res.json()) as Promo[];
 }
-

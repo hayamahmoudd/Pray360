@@ -27,6 +27,7 @@ export async function devRoutes(app: FastifyInstance) {
         rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
         comment TEXT NOT NULL DEFAULT '',
         prayed_here BOOLEAN NOT NULL DEFAULT TRUE,
+        photo_url TEXT,
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `);
@@ -55,12 +56,11 @@ export async function devRoutes(app: FastifyInstance) {
 
     return { ok: true };
   });
+  
   app.get("/dev/reset", async () => {
-  await query(`DROP TABLE IF EXISTS promos;`);
-  await query(`DROP TABLE IF EXISTS reviews;`);
-  await query(`DROP TABLE IF EXISTS places;`);
-  return { ok: true };
-});
-
+    await query(`DROP TABLE IF EXISTS promos;`);
+    await query(`DROP TABLE IF EXISTS reviews;`);
+    await query(`DROP TABLE IF EXISTS places;`);
+    return { ok: true };
+  });
 }
-

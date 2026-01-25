@@ -1,6 +1,8 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import fastifyStatic from "@fastify/static";
+import { join } from "path";
 
 import { devRoutes } from "./routes/dev";
 import { placesRoutes } from "./routes/places";
@@ -12,6 +14,12 @@ const app = Fastify({ logger: true });
 await app.register(cors, {
   origin: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+});
+
+// Serve uploaded files
+await app.register(fastifyStatic, {
+  root: join(process.cwd(), 'uploads'),
+  prefix: '/uploads/',
 });
 
 app.get("/health", async () => ({ ok: true }));
