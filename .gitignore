@@ -67,3 +67,4 @@ backend/uploads/*
 *.jpeg
 *.gif
 *.webp  
+*.mov
