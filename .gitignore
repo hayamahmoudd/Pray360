@@ -64,6 +64,7 @@ backend/uploads/*
 # Keep frontend assets
 !frontend/src/assets/**
 !frontend/public/**
+!demo.gif
 *.jpeg
 *.gif
 *.webp  
