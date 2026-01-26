@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { query } from "../db";
+import { query } from "../db.js";
 
 export async function devRoutes(app: FastifyInstance) {
   app.get("/dev/init", async () => {
