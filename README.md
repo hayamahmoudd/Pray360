@@ -4,9 +4,9 @@ A community driven platform for discovering and rating prayer/multifaith spaces.
 
 ## Demo
 
-[![Watch Demo](https://img.youtube.com/vi/vtsPQ86lR9g/maxresdefault.jpg)](https://www.youtube.com/watch?v=vtsPQ86lR9g)
+![Pray360 Demo](demo.gif)
 
-🎥 [Watch the full demo on YouTube](https://www.youtube.com/watch?v=vtsPQ86lR9g)
+🎥 [Watch with audio on YouTube](https://www.youtube.com/watch?v=vtsPQ86lR9g)
 
 ## Features
 
