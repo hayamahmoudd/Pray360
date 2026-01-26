@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { query } from "../db";
+import { query } from "../db.js";
 
 export async function placesRoutes(app: FastifyInstance) {
   app.post("/places", async (req, reply) => {

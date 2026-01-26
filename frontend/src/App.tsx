@@ -73,12 +73,8 @@ export default function App() {
   return (
     <div className="shell">
       <header className="topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo2.png" alt="Pray360" style={{ height: '52px', width: 'auto', objectFit: 'contain' }} />
-          <div>
-            <div className="brand">Pray360</div>
-            <div className="tag">Pin and rate prayer spaces</div>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img src="/logo2.png" alt="Pray360" style={{ height: '70px', width: 'auto', objectFit: 'contain' }} />
         </div>
         {currentUser && (
           <div style={{ 
