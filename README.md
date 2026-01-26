@@ -2,6 +2,12 @@
 
 A community driven platform for discovering and rating prayer/multifaith spaces. Pray360 helps users find suitable places to pray while traveling, at work, or in unfamiliar areas.
 
+## Demo
+
+[![Watch Demo](https://img.youtube.com/vi/vtsPQ86lR9g/maxresdefault.jpg)](https://www.youtube.com/watch?v=vtsPQ86lR9g)
+
+🎥 [Watch the full demo on YouTube](https://www.youtube.com/watch?v=vtsPQ86lR9g)
+
 ## Features
 
 ### For Non-Buisness Owners
