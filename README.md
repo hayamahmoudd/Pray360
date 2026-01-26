@@ -78,4 +78,4 @@ A community driven platform for discovering and rating prayer/multifaith spaces.
     - IOS/Andriod Mobile Application in addition to web app
     - Promotions for users who utilize prayer spaces in certain businesses
     - ID Verifcation for all business users 
-    - See how far the closest prayer spot is from you're current location
+    - See how far the closest prayer spot is from your current location
