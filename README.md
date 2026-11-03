@@ -32,6 +32,7 @@ A community driven platform for discovering and rating prayer/multifaith spaces.
 - **Node.js**
 - **PostgreSQL** for geospatial queries
 - **Docker** for database containerization
+- **Fastify** for sending HTTP requests
 
 ## Getting Started
 
